@@ -5,3 +5,6 @@ seaborn
 scipy
 fredapi
 statsmodels
+streamlit
+plotly
+python-dotenv
