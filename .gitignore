@@ -6,4 +6,4 @@ __pycache__/
 .DS_Store
 .venv/
 venv/
-README.md
+06_presentation.ipynb

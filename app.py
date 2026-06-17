@@ -130,13 +130,67 @@ c4.metric("Convexity",         f"{port_conv:.2f}")
 st.divider()
 
 # ── Tabs ───────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "About",
     "📉 Live Curve",
     "📊 Portfolio Risk",
     "⚡ Stress Test",
     "🛡️ Hedging",
     "💰 Cost Analysis",
 ])
+
+# ════════════════════════════════════════════════════
+# TAB 0 — ABOUT
+# ════════════════════════════════════════════════════
+with tab0:
+    st.subheader("About This Dashboard")
+    st.markdown("""
+This dashboard is a fixed-income risk management tool built on 25 years of US Treasury data.
+It models yield curve dynamics, stress tests a bond portfolio, and evaluates hedging strategies using Treasury futures.
+
+**What it does:**
+
+- Fits the Nelson-Siegel yield curve model to daily FRED Treasury data and tracks how the curve evolves over time
+- Uses the Diebold-Li factor model to decompose the curve into Level, Slope, and Curvature, and simulates 10,000 forward paths over a 12-month horizon
+- Stress tests a $51.5M bond portfolio across 26 rate scenarios including historical shocks (2022 rate cycle, COVID, Taper Tantrum) and user-defined parallel shifts
+- Evaluates three Treasury futures hedging strategies and shows their effectiveness across all scenarios
+- Compares hedge cost against loss avoided to quantify the cost-benefit of each strategy
+
+**Data:**
+
+Treasury yields are fetched daily from the Federal Reserve (FRED) across 11 maturities from 1 month to 30 years.
+Use the Refresh button in the sidebar to pull the latest rates.
+
+**Portfolio:**
+
+The portfolio consists of 12 US Treasury bonds spanning 2 to 30 year maturities with a total market value of $51.5M and a modified duration of 6.22 years.
+""")
+
+    st.subheader("Dashboard Tabs")
+    st.markdown("""
+**Live Curve**
+Displays the current US Treasury yield curve alongside historical snapshots from 1, 2, and 5 years ago.
+Includes an interactive yield history chart for any set of tenors and a time series of the three Nelson-Siegel factors that drive curve shape.
+
+**Portfolio Risk**
+Shows the composition of the $51.5M bond portfolio with key metrics for each position including modified duration, DV01, and convexity.
+Breaks down rate sensitivity by maturity bucket and visualizes the key rate duration profile to show where the portfolio is most exposed.
+
+**Stress Test**
+Runs the portfolio through 26 rate scenarios and displays the P&L impact of each.
+Includes a rate moves heatmap showing how each scenario shifts the curve, and a custom parallel shift tool where you can input any basis point move and see the estimated P&L in real time.
+
+**Hedging**
+Compares three Treasury futures hedging strategies across all scenarios using an effectiveness heatmap.
+Shows the unhedged versus hedged P&L side by side for the most impactful scenarios so you can see exactly what each strategy protects against.
+
+**Cost Analysis**
+Breaks down the transaction cost of each hedge strategy and compares the dollar amount of loss avoided in the worst case scenario.
+Includes a return on hedge cost metric and a summary table making the case for the recommended strategy.
+""")
+
+    st.divider()
+    st.markdown("Built by Kshitij Bhandari | [GitHub](https://github.com/kshitijbhandari/Yield-Curve-Modeling)")
 
 # ════════════════════════════════════════════════════
 # TAB 1 — LIVE YIELD CURVE
@@ -198,7 +252,7 @@ with tab1:
     st.caption("β₀ = Level (long-run rate)  |  β₁ = Slope  |  β₂ = Curvature (hump)")
     ns_hist = ns_params[ns_params.index >= start]
     fig3 = make_subplots(rows=3, cols=1, shared_xaxes=True,
-                          subplot_titles=["β₀ — Level","β₁ — Slope","β₂ — Curvature"])
+                          subplot_titles=["β₀: Level","β₁: Slope","β₂: Curvature"])
     for i, (col, color) in enumerate(zip(["beta0","beta1","beta2"],
                                           ["#1f77b4","#ff7f0e","#2ca02c"]), 1):
         fig3.add_trace(go.Scatter(x=ns_hist.index, y=ns_hist[col],
@@ -252,7 +306,7 @@ with tab2:
         textposition="outside",
     ))
     fig.update_layout(
-        title="Key Rate Duration — Rate Sensitivity at Each Tenor",
+        title="Key Rate Duration: Rate Sensitivity at Each Tenor",
         xaxis_title="Tenor", yaxis_title="KRD (years)", height=360,
     )
     st.plotly_chart(fig, use_container_width=True)
@@ -367,7 +421,7 @@ with tab4:
             colorbar=dict(title="Effectiveness %"),
         ))
         fig.update_layout(
-            title="Hedge Effectiveness — Green is Good",
+            title="Hedge Effectiveness (Green is Good)",
             height=max(320, len(all_sc) * 25 + 80),
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -386,7 +440,7 @@ with tab4:
         ))
     fig.update_layout(
         barmode="group",
-        title=f"P&L Comparison — Top {top_n} Most Impactful Scenarios",
+        title=f"P&L Comparison: Top {top_n} Most Impactful Scenarios",
         xaxis_title="Scenario", yaxis_title="P&L ($K)",
         height=420, xaxis_tickangle=-25,
     )
@@ -456,7 +510,7 @@ with tab5:
         st.plotly_chart(fig, use_container_width=True)
 
     st.divider()
-    st.subheader("Bottom Line — Why S4?")
+    st.subheader("Bottom Line: Why S4?")
     s4_cost = HEDGE_SPECS["S4: Combined"]["cost"]
     s4_prot = abs(protection["S4"])
     st.markdown(f"""
